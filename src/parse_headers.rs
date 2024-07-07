@@ -27,6 +27,41 @@ type ParsedHeaders = Result<
     String,
 >;
 
+/// Parses a vector of HTTP header strings into a structured format.
+///
+/// This function processes a list of HTTP headers and extracts the request type, HTTP version,
+/// headers, and constructs the URL if the "Host" header is present. It returns a tuple containing
+/// the request type, HTTP version, headers as a `HashMap`, and an optional parsed URL.
+///
+/// # Arguments
+///
+/// * `headers` - A vector of strings where each string represents a single HTTP header.
+///
+/// # Returns
+///
+/// * `ParsedHeaders` - A result containing a tuple with the request type, HTTP version, headers map, and optional URL,
+///   or an error message if parsing fails.
+///
+/// # Errors
+///
+/// This function returns an error if the headers are empty, if the request line is invalid, or if the HTTP version is invalid.
+///
+/// # Examples
+///
+/// ```
+/// let headers = vec![
+///     "GET /test HTTP/1.1".to_string(),
+///     "Host: localhost:8002".to_string(),
+///     "User-Agent: curl/8.2.1".to_string(),
+///     "Accept: */*".to_string(),
+/// ];
+///
+/// let result = parse_headers(headers).unwrap();
+/// assert_eq!(result.0, RequestType::GET);
+/// assert_eq!(result.1, HttpType::OnePointOne);
+/// assert_eq!(result.2.get("Host"), Some(&"localhost:8002".to_string()));
+/// assert_eq!(result.3, Some("localhost:8002/test".to_string()));
+/// ```
 pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
     if headers.is_empty() {
         return Err("No headers to parse.".to_string());
@@ -79,6 +114,8 @@ pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
 #[cfg(test)]
 mod parse_headers_test {
     use super::*;
+
+    /// Tests the `parse_headers` function with a valid set of HTTP headers.
     #[test]
     pub fn test_parse_headers() {
         let headers = vec![
