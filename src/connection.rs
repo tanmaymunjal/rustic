@@ -31,11 +31,12 @@ pub fn listen_at_port(port: u16) -> TcpListener {
     TcpListener::bind(address).expect("Failed to bind to port")
 }
 
-/// Handles an incoming TCP connection, reading the HTTP request line by line.
+/// Handles an incoming TCP connection, reading the HTTP request headers and body.
 ///
 /// This function reads from the given TCP stream using a buffered reader, collecting
-/// each line of the HTTP request into a vector of strings. The reading stops when an
-/// empty line is encountered, which signifies the end of the HTTP request headers.
+/// the headers and body of the HTTP request separately. It first reads the headers
+/// line by line until an empty line is encountered, which signifies the end of the
+/// HTTP headers. Then, it reads the bytes set by content-length header as body.
 ///
 /// # Arguments
 ///
@@ -43,26 +44,45 @@ pub fn listen_at_port(port: u16) -> TcpListener {
 ///
 /// # Returns
 ///
-/// * `Vec<String>` - A vector containing each line of the HTTP request.
+/// * `(Vec<String>, String)` - A tuple containing:
+///   - A vector of strings, each representing a line of the HTTP headers.
+///   - A string containing the body of the HTTP request.
 ///
 /// # Examples
 ///
 /// ```no_run
-/// use rustic::connection::{listen_at_port,handle_connection};
+/// use rustic::connection::{listen_at_port, handle_connection};
 /// let listener = listen_at_port(8080);
 /// let mut stream = listener.accept().unwrap().0;
-/// let request_lines = handle_connection(&mut stream);
+/// let (headers, body) = handle_connection(&mut stream);
 /// ```
-pub fn handle_connection(stream: &mut TcpStream) -> Vec<String> {
-    // Create a buffered reader from the TCP stream
-    let buf_reader = BufReader::new(stream);
-    // Read lines from the buffered reader, collecting them into a vector until an empty line is encountered
-    let http_request: Vec<_> = buf_reader
-        .lines()
-        .map(|result| result.unwrap())
-        // Continue reading lines until an empty line is found
-        .take_while(|line| !line.is_empty())
-        // Collect the lines into a vector
-        .collect();
-    http_request
+pub fn handle_connection(stream: &mut TcpStream) -> (Vec<String>, String) {
+    let mut buf_reader = BufReader::new(stream);
+
+    let mut headers: Vec<String> = Vec::new();
+    let mut content_length = 0;
+
+    // Read headers and find Content-Length
+    for line in buf_reader.by_ref().lines() {
+        let line = line.unwrap();
+        if line.is_empty() {
+            break;
+        }
+        if line.to_lowercase().starts_with("content-length:") {
+            content_length = line
+                .split(':')
+                .nth(1)
+                .and_then(|len| len.trim().parse::<usize>().ok())
+                .unwrap_or(0);
+        }
+        headers.push(line);
+    }
+
+    // Read body
+    let mut body = String::with_capacity(content_length);
+    buf_reader
+        .take(content_length as u64)
+        .read_to_string(&mut body)
+        .unwrap_or_else(|_| 0);
+    (headers, body)
 }

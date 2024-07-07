@@ -8,7 +8,7 @@ use std::collections::HashMap;
 /// Represents an HTTP request.
 pub struct Request {
     pub headers: HashMap<String, String>,
-    pub body: HashMap<String, String>,
+    pub body: String,
     pub url_params: HashMap<String, String>,
 }
 
@@ -89,7 +89,7 @@ pub fn run(app: App, port: u16, verbose: bool) {
     }
     for stream in listener.incoming() {
         let mut stream = stream.unwrap(); // Make stream mutable to use it later for writing
-        let headers = handle_connection(&mut stream); // Pass stream as mutable reference
+        let (headers, body) = handle_connection(&mut stream); // Pass stream as mutable reference
         let (request_type, _, headers_map, url) = parse_headers(headers).unwrap();
 
         if let Some(url) = url {
@@ -101,7 +101,7 @@ pub fn run(app: App, port: u16, verbose: bool) {
                 Ok(endpoint) => {
                     let request = Request {
                         headers: headers_map,
-                        body: HashMap::new(),
+                        body,
                         url_params,
                     };
 

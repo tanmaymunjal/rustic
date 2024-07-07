@@ -99,7 +99,7 @@ pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
             header_map.insert(key.to_string(), value.clone());
 
             // Check if the header is "Host" and extract its value
-            if key.eq_ignore_ascii_case("Host") {
+            if key.to_lowercase().eq_ignore_ascii_case("host") {
                 host_name = Some(value);
             }
         }

@@ -33,25 +33,25 @@ mod integration_tests {
         let _ = client.get(url).send();
 
         // Wait to receive the processed request
-        let received_request = rx
+        let (received_headers, _) = rx
             .recv_timeout(Duration::from_secs(2))
             .expect("Didn't receive a request within the timeout period");
 
         // Assert that we received the expected request
         assert!(
-            !received_request.is_empty(),
+            !received_headers.is_empty(),
             "The received request shouldn't be empty"
         );
         assert_eq!(
-            received_request[0], "GET / HTTP/1.1",
+            received_headers[0], "GET / HTTP/1.1",
             "The first line should be the GET request"
         );
         assert_eq!(
-            received_request[1], "accept: */*",
+            received_headers[1], "accept: */*",
             "The second line should be accept header"
         );
         assert_eq!(
-            received_request[2], "host: localhost:8001",
+            received_headers[2], "host: localhost:8001",
             "The third line should be host header"
         );
 
@@ -71,7 +71,7 @@ mod integration_tests {
             };
             Some(response)
         }
-        application.add_endpoint("test", RequestType::GET, hello_world);
+        application.add_endpoint("test", RequestType::POST, hello_world);
         run(application, 8002, true);
     }
 }
