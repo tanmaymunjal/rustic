@@ -17,3 +17,7 @@ pub fn handle_connection(stream: &mut TcpStream) -> Vec<String> {
         .collect();
     http_request
 }
+
+pub fn write_connection(stream: &mut TcpStream, buf: &[u8]) {
+    stream.write_all(buf).unwrap();
+}
