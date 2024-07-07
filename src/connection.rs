@@ -8,8 +8,8 @@ pub fn listen_at_port(port: u16) -> TcpListener {
     TcpListener::bind(address).expect("Failed to bind to port")
 }
 
-pub fn read_listener(connection: TcpListener, should_continue: bool) {
-    for stream in connection.incoming() {
+pub fn read_listener(listener: TcpListener, should_continue: bool) {
+    for stream in listener.incoming() {
         let stream = stream.unwrap();
         handle_connection(stream);
         if !should_continue {

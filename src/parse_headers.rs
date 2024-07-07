@@ -17,9 +17,17 @@ pub enum HttpType {
     NotSupported(String),
 }
 
-pub fn parse_headers(
-    headers: Vec<String>,
-) -> Result<(RequestType, HttpType, HashMap<String, String>), String> {
+type ParsedHeaders = Result<
+    (
+        RequestType,
+        HttpType,
+        HashMap<String, String>,
+        Option<String>,
+    ),
+    String,
+>;
+
+pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
     if headers.is_empty() {
         return Err("No headers to parse.".to_string());
     }
@@ -44,15 +52,24 @@ pub fn parse_headers(
     };
 
     let mut header_map = HashMap::new();
+    let mut host_name = None;
 
+    // Parse headers
     for header in headers.iter().skip(1) {
         let parts: Vec<&str> = header.splitn(2, ": ").collect();
         if parts.len() == 2 {
-            header_map.insert(parts[0].to_string(), parts[1].to_string());
+            let key = parts[0].trim(); // Trim to handle spaces
+            let value = parts[1].trim().to_string(); // Trim and convert value to String
+            header_map.insert(key.to_string(), value.clone());
+
+            // Check if the header is "Host" and extract its value
+            if key.eq_ignore_ascii_case("Host") {
+                host_name = Some(value);
+            }
         }
     }
 
-    Ok((request_type, http_type, header_map))
+    Ok((request_type, http_type, header_map, host_name))
 }
 
 #[cfg(test)]
@@ -66,7 +83,7 @@ mod parse_headers_test {
             "User-Agent: Mozilla/5.0".to_string(),
         ];
 
-        let (request_type, http_type, headers_map) = parse_headers(headers).unwrap();
+        let (request_type, http_type, headers_map, url) = parse_headers(headers).unwrap();
 
         assert_eq!(request_type, RequestType::GET);
         assert_eq!(http_type, HttpType::OnePointOne);
@@ -75,5 +92,6 @@ mod parse_headers_test {
             headers_map.get("User-Agent"),
             Some(&"Mozilla/5.0".to_string())
         );
+        assert_eq!(url, Some("example.com".to_string()));
     }
 }

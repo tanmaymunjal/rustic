@@ -1,14 +1,12 @@
 use std::collections::HashMap;
 
 pub fn parse_url_param(url: &str) -> HashMap<String, String> {
-    url.split('?')
-        .nth(1)
+    url.split_once('?')
+        .map(|(_, params)| params)
         .unwrap_or("")
         .split('&')
-        .filter_map(|s| {
-            let mut iter = s.split('=');
-            Some((iter.next()?.to_string(), iter.next()?.to_string()))
-        })
+        .filter_map(|s| s.split_once('='))
+        .map(|(k, v)| (k.to_string(), v.to_string()))
         .collect()
 }
 
