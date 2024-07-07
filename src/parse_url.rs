@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+
 pub fn parse_url_param(url: &str) -> HashMap<String, String> {
     url.split_once('?')
         .map(|(_, params)| params)

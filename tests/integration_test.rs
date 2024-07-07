@@ -3,7 +3,9 @@ mod integration_tests {
     use reqwest::blocking::Client;
     use rustic::app::{run, App, Request};
     use rustic::connection::{handle_connection, listen_at_port};
+    use rustic::http11_response::Response;
     use rustic::parse_headers::RequestType;
+    use std::collections::HashMap;
     use std::sync::mpsc;
     use std::thread;
     use std::time::Duration;
@@ -60,8 +62,14 @@ mod integration_tests {
     #[test]
     fn test_create_app() {
         let mut application = App::new();
-        fn hello_world(_: Request) -> Option<String> {
-            Some("HTTP/1.1 200 Hello".to_string())
+        fn hello_world(_: Request) -> Option<Response<'static>> {
+            let response = Response {
+                status_code: 200,
+                reason: "Ok",
+                response_body: Some("Hi!"),
+                headers: HashMap::new(),
+            };
+            Some(response)
         }
         application.add_endpoint("test", RequestType::GET, hello_world);
         run(application, 8002, true);
