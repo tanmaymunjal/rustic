@@ -49,6 +49,7 @@ type ParsedHeaders = Result<
 /// # Examples
 ///
 /// ```
+/// use rustic::parse_headers::{parse_headers,RequestType,HttpType};
 /// let headers = vec![
 ///     "GET /test HTTP/1.1".to_string(),
 ///     "Host: localhost:8002".to_string(),
