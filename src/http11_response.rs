@@ -64,13 +64,16 @@ pub fn write_status_header(status_code: u16, reason: &str) -> String {
     format!("HTTP/1.1 {} {} \r\n", status_code, reason)
 }
 
-/// Constructs the HTTP headers from a given `HashMap`.
+/// Constructs the HTTP headers from a given `HashMap` and includes an optional body and Content-Length.
 ///
-/// This function formats the HTTP headers and adds the current date if not already present.
+/// This function formats the HTTP headers, adds the current date if not already present,
+/// and includes the Content-Length header based on the length of the provided body if present.
+/// If `body` is `None`, it adds Content-Length as 0.
 ///
 /// # Arguments
 ///
 /// * `headers` - A mutable reference to a `HashMap` containing the headers.
+/// * `body` - An optional body content as a string slice (`Option<&str>`).
 ///
 /// # Returns
 ///
@@ -81,13 +84,22 @@ pub fn write_status_header(status_code: u16, reason: &str) -> String {
 /// ```
 /// use rustic::http11_response::write_header;
 /// use std::collections::HashMap;
-/// let mut headers = HashMap::new();
-/// headers.insert("Content-Type".to_string(), "text/plain".to_string());
-/// let headers_string = write_header(&mut headers);
-/// assert!(headers_string.contains("Content-Type: text/plain\r\n"));
+/// fn main() {
+///     let mut headers = HashMap::new();
+///     headers.insert("Content-Type".to_string(), "text/plain".to_string());
+///     let body = Some("Hello, world!");
+///     let headers_string = write_header(&mut headers, body);
+///     println!("{}", headers_string);
+///     assert!(headers_string.contains("Content-Type: text/plain\r\n"));
+/// }
 /// ```
-pub fn write_header(headers: &mut HashMap<String, String>) -> String {
+pub fn write_header(headers: &mut HashMap<String, String>, body: Option<&str>) -> String {
     headers.insert("Date".to_string(), get_current_utc_date());
+    if let Some(body) = body {
+        headers.insert("Content-Length".to_string(), body.len().to_string());
+    } else {
+        headers.insert("Content-Length".to_string(), "0".to_string());
+    }
 
     let mut header_string = String::new();
     for (key, value) in headers {
@@ -123,7 +135,7 @@ pub fn write_header(headers: &mut HashMap<String, String>) -> String {
 /// ```
 pub fn write_connection(stream: &mut TcpStream, mut response: Response) {
     let status_line = write_status_header(response.status_code, response.reason);
-    let headers_string = write_header(&mut response.headers);
+    let headers_string = write_header(&mut response.headers, response.response_body);
     let mut full_response = status_line;
     full_response.push_str(&headers_string);
 
@@ -187,11 +199,10 @@ mod test_http_response_functions {
     fn test_write_header() {
         let mut headers = HashMap::new();
         headers.insert("Content-Type".to_string(), "text/plain".to_string());
-        headers.insert("Content-Length".to_string(), "123".to_string());
 
-        let header_string = write_header(&mut headers);
+        let header_string = write_header(&mut headers, None);
         assert!(header_string.contains("Content-Type: text/plain\r\n"));
-        assert!(header_string.contains("Content-Length: 123\r\n"));
+        assert!(header_string.contains("Content-Length: 0\r\n"));
     }
 
     /// Tests the `hashmap_to_json` function.
