@@ -70,9 +70,8 @@ pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
     }
 
     // Construct the URL
-    let url = host_name.and_then(|host| {
-        split_request.get(1).map(|path| format!("{}{}", host, path))
-    });
+    let url =
+        host_name.and_then(|host| split_request.get(1).map(|path| format!("{}{}", host, path)));
 
     Ok((request_type, http_type, header_map, url))
 }
@@ -86,7 +85,7 @@ mod parse_headers_test {
             "GET /test HTTP/1.1".to_string(),
             "Host: localhost:8002".to_string(),
             "User-Agent: curl/8.2.1".to_string(),
-            "Accept: */*".to_string()
+            "Accept: */*".to_string(),
         ];
 
         let (request_type, http_type, headers_map, url) = parse_headers(headers).unwrap();

@@ -1,4 +1,5 @@
-use crate::connection::{handle_connection, listen_at_port, write_connection};
+use crate::connection::{handle_connection, listen_at_port};
+use crate::http11_response::{write_connection, Response};
 use crate::parse_headers::parse_headers;
 use crate::parse_headers::RequestType;
 use crate::parse_path::parse_path;
@@ -6,15 +7,15 @@ use crate::parse_url::parse_url_param;
 use std::collections::HashMap;
 
 pub struct Request {
-    headers: HashMap<String, String>,
-    body: HashMap<String, String>,
-    url_params: HashMap<String, String>,
+    pub headers: HashMap<String, String>,
+    pub body: HashMap<String, String>,
+    pub url_params: HashMap<String, String>,
 }
 
 pub struct Endpoint<'a> {
     path: &'a str,
     request: RequestType,
-    mapper: fn(Request) -> Option<String>,
+    mapper: fn(Request) -> Option<Response<'a>>,
 }
 
 pub struct App<'a> {
@@ -30,7 +31,7 @@ impl<'a> App<'a> {
         &mut self,
         path: &'a str,
         request: RequestType,
-        mapper: fn(Request) -> Option<String>,
+        mapper: fn(Request) -> Option<Response<'a>>,
     ) {
         let endpoint = Endpoint {
             path,
@@ -74,14 +75,11 @@ pub fn run(app: App, port: u16, verbose: bool) {
                     let request = Request {
                         headers: headers_map,
                         body: HashMap::new(),
-                        url_params: url_params,
+                        url_params,
                     };
 
-                    match (endpoint.mapper)(request) {
-                        Some(response) => {
-                            write_connection(&mut stream, response.as_bytes());
-                        }
-                        None => {}
+                    if let Some(response) = (endpoint.mapper)(request) {
+                        write_connection(&mut stream, response);
                     }
                 }
                 Err(err) => {
