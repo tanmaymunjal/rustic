@@ -13,9 +13,8 @@ use std::collections::HashMap;
 /// # Examples
 ///
 /// ```
-/// use crate::parse_url_param;
+/// use rustic::parse_url::parse_url_param;
 /// use std::collections::HashMap;
-///
 /// let url = "http://example.com/?key=value";
 /// let result = parse_url_param(url);
 /// let mut expected = HashMap::new();

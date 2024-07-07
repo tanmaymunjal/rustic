@@ -22,7 +22,8 @@ use std::{
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
+/// use rustic::connection::listen_at_port;
 /// let listener = listen_at_port(8080);
 /// ```
 pub fn listen_at_port(port: u16) -> TcpListener {
@@ -46,7 +47,9 @@ pub fn listen_at_port(port: u16) -> TcpListener {
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
+/// use rustic::connection::{listen_at_port,handle_connection};
+/// let listener = listen_at_port(8080);
 /// let mut stream = listener.accept().unwrap().0;
 /// let request_lines = handle_connection(&mut stream);
 /// ```

@@ -24,10 +24,11 @@ pub struct Response<'a> {
 /// # Examples
 ///
 /// ```
+/// use rustic::http11_response::get_current_utc_date;
 /// let date = get_current_utc_date();
 /// println!("{}", date); // Example: "Sun, 07 Jul 2024 12:00:00 GMT"
 /// ```
-fn get_current_utc_date() -> String {
+pub fn get_current_utc_date() -> String {
     let now = SystemTime::now();
     let seconds_since_epoch = now.duration_since(UNIX_EPOCH).unwrap().as_secs();
     let formatted_date = chrono::DateTime::<chrono::Utc>::from_utc(
@@ -55,10 +56,11 @@ fn get_current_utc_date() -> String {
 /// # Examples
 ///
 /// ```
+/// use rustic::http11_response::write_status_header;
 /// let status_line = write_status_header(200, "OK");
 /// assert_eq!(status_line, "HTTP/1.1 200 OK \r\n");
 /// ```
-fn write_status_header(status_code: u16, reason: &str) -> String {
+pub fn write_status_header(status_code: u16, reason: &str) -> String {
     format!("HTTP/1.1 {} {} \r\n", status_code, reason)
 }
 
@@ -77,12 +79,14 @@ fn write_status_header(status_code: u16, reason: &str) -> String {
 /// # Examples
 ///
 /// ```
+/// use rustic::http11_response::write_header;
+/// use std::collections::HashMap;
 /// let mut headers = HashMap::new();
 /// headers.insert("Content-Type".to_string(), "text/plain".to_string());
 /// let headers_string = write_header(&mut headers);
 /// assert!(headers_string.contains("Content-Type: text/plain\r\n"));
 /// ```
-fn write_header(headers: &mut HashMap<String, String>) -> String {
+pub fn write_header(headers: &mut HashMap<String, String>) -> String {
     headers.insert("Date".to_string(), get_current_utc_date());
 
     let mut header_string = String::new();
@@ -104,7 +108,10 @@ fn write_header(headers: &mut HashMap<String, String>) -> String {
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
+/// use rustic::http11_response::{write_connection,Response};
+/// use std::net::TcpStream;
+/// use std::collections::HashMap;
 /// let mut stream = TcpStream::connect("127.0.0.1:8080").unwrap();
 /// let response = Response {
 ///     status_code: 200,
@@ -141,6 +148,9 @@ pub fn write_connection(stream: &mut TcpStream, mut response: Response) {
 /// # Examples
 ///
 /// ```
+/// use std::collections::HashMap;
+/// use rustic::connection::listen_at_port;
+/// use rustic::http11_response::hashmap_to_json;
 /// let mut map = HashMap::new();
 /// map.insert("key1", "value1");
 /// let json_data = hashmap_to_json(&map);

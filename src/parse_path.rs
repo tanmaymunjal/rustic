@@ -14,6 +14,7 @@
 /// # Examples
 ///
 /// ```
+/// use rustic::parse_path::parse_path;
 /// assert_eq!(
 ///     parse_path("https://example.com/path/to/resource/"),
 ///     Some("path/to/resource")
