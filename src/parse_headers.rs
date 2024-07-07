@@ -3,12 +3,15 @@ use std::collections::HashMap;
 #[derive(Debug, PartialEq)]
 pub enum RequestType {
     GET,
+    HEAD,
     POST,
     PUT,
-    DELETE,
     PATCH,
     UPDATE,
-    Other(String),
+    DELETE,
+    CONNECT,
+    OPTIONS,
+    TRACE,
 }
 
 #[derive(Debug, PartialEq)]
@@ -72,12 +75,16 @@ pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
 
     let request_type = match split_request.first() {
         Some(&"GET") => RequestType::GET,
+        Some(&"HEAD") => RequestType::HEAD,
         Some(&"POST") => RequestType::POST,
         Some(&"PUT") => RequestType::PUT,
         Some(&"DELETE") => RequestType::DELETE,
         Some(&"PATCH") => RequestType::PATCH,
         Some(&"UPDATE") => RequestType::UPDATE,
-        Some(other) => RequestType::Other(other.to_string()),
+        Some(&"CONNECT") => RequestType::CONNECT,
+        Some(&"OPTIONS") => RequestType::OPTIONS,
+        Some(&"TRACE") => RequestType::TRACE,
+        Some(option) => return Err(format!("Invalid request type: {option}")),
         None => return Err("Invalid request line.".to_string()),
     };
 
