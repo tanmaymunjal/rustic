@@ -58,8 +58,8 @@ pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
     for header in headers.iter().skip(1) {
         let parts: Vec<&str> = header.splitn(2, ": ").collect();
         if parts.len() == 2 {
-            let key = parts[0].trim(); // Trim to handle spaces
-            let value = parts[1].trim().to_string(); // Trim and convert value to String
+            let key = parts[0].trim();
+            let value = parts[1].trim().to_string();
             header_map.insert(key.to_string(), value.clone());
 
             // Check if the header is "Host" and extract its value
@@ -69,7 +69,12 @@ pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
         }
     }
 
-    Ok((request_type, http_type, header_map, host_name))
+    // Construct the URL
+    let url = host_name.and_then(|host| {
+        split_request.get(1).map(|path| format!("{}{}", host, path))
+    });
+
+    Ok((request_type, http_type, header_map, url))
 }
 
 #[cfg(test)]
@@ -78,20 +83,21 @@ mod parse_headers_test {
     #[test]
     pub fn test_parse_headers() {
         let headers = vec![
-            "GET / HTTP/1.1".to_string(),
-            "Host: example.com".to_string(),
-            "User-Agent: Mozilla/5.0".to_string(),
+            "GET /test HTTP/1.1".to_string(),
+            "Host: localhost:8002".to_string(),
+            "User-Agent: curl/8.2.1".to_string(),
+            "Accept: */*".to_string()
         ];
 
         let (request_type, http_type, headers_map, url) = parse_headers(headers).unwrap();
 
         assert_eq!(request_type, RequestType::GET);
         assert_eq!(http_type, HttpType::OnePointOne);
-        assert_eq!(headers_map.get("Host"), Some(&"example.com".to_string()));
+        assert_eq!(headers_map.get("Host"), Some(&"localhost:8002".to_string()));
         assert_eq!(
             headers_map.get("User-Agent"),
-            Some(&"Mozilla/5.0".to_string())
+            Some(&"curl/8.2.1".to_string())
         );
-        assert_eq!(url, Some("example.com".to_string()));
+        assert_eq!(url, Some("localhost:8002/test".to_string()));
     }
 }
