@@ -33,4 +33,11 @@ jobs:
     - name: Run clippy
       run: cargo clippy
     
+    - name: Generate Docs and Save
+      run: ./generate_docs.sh  # Adjust the path if necessary
+      && git add docs
+      && git config --local user.email "action@github.com"
+      && git config --local user.name "GitHub Action"
+      && git commit -m "Add generated docs" --no-verify
+      && git push
 
