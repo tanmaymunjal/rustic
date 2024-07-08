@@ -83,6 +83,6 @@ pub fn handle_connection(stream: &mut TcpStream) -> (Vec<String>, String) {
     buf_reader
         .take(content_length as u64)
         .read_to_string(&mut body)
-        .unwrap_or_else(|_| 0);
+        .unwrap_or(0);
     (headers, body)
 }

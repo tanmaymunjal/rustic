@@ -84,14 +84,12 @@ pub fn write_status_header(status_code: u16, reason: &str) -> String {
 /// ```
 /// use rustic::http11_response::write_header;
 /// use std::collections::HashMap;
-/// fn main() {
-///     let mut headers = HashMap::new();
-///     headers.insert("Content-Type".to_string(), "text/plain".to_string());
-///     let body = Some("Hello, world!");
-///     let headers_string = write_header(&mut headers, body);
-///     println!("{}", headers_string);
-///     assert!(headers_string.contains("Content-Type: text/plain\r\n"));
-/// }
+/// let mut headers = HashMap::new();
+/// headers.insert("Content-Type".to_string(), "text/plain".to_string());
+/// let body = Some("Hello, world!");
+/// let headers_string = write_header(&mut headers, body);
+/// println!("{}", headers_string);
+/// assert!(headers_string.contains("Content-Type: text/plain\r\n"));
 /// ```
 pub fn write_header(headers: &mut HashMap<String, String>, body: Option<&str>) -> String {
     headers.insert("Date".to_string(), get_current_utc_date());

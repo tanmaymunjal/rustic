@@ -27,7 +27,7 @@ jobs:
       run: cargo build --verbose
 
     - name: Run tests
-      run: cargo test -- --skip integration_tests 
+      run: cargo test
 
     # do not want to treat warning as errors rn, still here for reference
     - name: Run clippy

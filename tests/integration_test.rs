@@ -62,16 +62,44 @@ mod integration_tests {
     #[test]
     fn test_create_app() {
         let mut application = App::new();
+
         fn hello_world(_: Request) -> Option<Response<'static>> {
+            let mut headers = HashMap::new();
+            headers.insert("Content-Type".to_string(), "text/plain".to_string());
             let response = Response {
                 status_code: 200,
                 reason: "Ok",
                 response_body: Some("Hi!"),
-                headers: HashMap::new(),
+                headers,
             };
             Some(response)
         }
+
         application.add_endpoint("test", RequestType::POST, hello_world);
-        run(application, 8002, true);
+
+        let (tx, rx) = mpsc::channel();
+
+        // Start the server in a separate thread
+        let server_handle = thread::spawn(move || {
+            tx.send(()).unwrap();
+            run(application, 8002, true);
+        });
+
+        // Wait for the signal that the server has started
+        rx.recv_timeout(Duration::from_secs(2))
+            .expect("Server did not start in time");
+
+        // Create a client and send a POST request
+        let client = Client::new();
+        let url = "http://localhost:8002/test";
+        let response = client.post(url).send().expect("Failed to send request");
+
+        // Assert that we received the expected response
+        assert_eq!(response.status().as_u16(), 200, "Status code should be 200");
+        assert_eq!(
+            response.text().unwrap(),
+            "Hi!",
+            "Response body should be 'Hi!'"
+        );
     }
 }
