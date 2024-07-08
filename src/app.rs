@@ -4,6 +4,8 @@ use crate::parse_headers::{parse_headers, RequestType};
 use crate::parse_path::parse_path;
 use crate::parse_url::parse_url_param;
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::thread;
 
 /// Represents an HTTP request.
 pub struct Request {
@@ -60,12 +62,12 @@ impl<'a> App<'a> {
     ///
     /// # Returns
     ///
-    /// * `Result<&Endpoint<'a>, &'static str>` - The matching endpoint or an error message.
+    /// * `Result<&Endpoint<'a>, &str>` - The matching endpoint or an error message.
     pub fn match_endpoint(
         &self,
         path: &str,
         request_type: RequestType,
-    ) -> Result<&Endpoint<'a>, &'static str> {
+    ) -> Result<&Endpoint<'a>, &str> {
         for endpoint in &self.endpoints {
             if endpoint.path == path && endpoint.request == request_type {
                 return Ok(endpoint);
@@ -82,37 +84,52 @@ impl<'a> App<'a> {
 /// * `app` - The application instance.
 /// * `port` - The port to listen on.
 /// * `verbose` - Whether to print verbose output.
-pub fn run(app: App, port: u16, verbose: bool) {
+pub fn run(app: App<'static>, port: u16, verbose: bool) {
     let listener = listen_at_port(port);
     if verbose {
         println!("Listening at port {:?}", port);
     }
+
+    let app = Arc::new(app);
+
     for stream in listener.incoming() {
-        let mut stream = stream.unwrap(); // Make stream mutable to use it later for writing
-        let (headers, body) = handle_connection(&mut stream); // Pass stream as mutable reference
-        let (request_type, _, headers_map, url) = parse_headers(headers).unwrap();
+        match stream {
+            Ok(mut stream) => {
+                let app_clone = Arc::clone(&app);
 
-        if let Some(url) = url {
-            let url_str = url.as_str();
-            let url_params = parse_url_param(url_str);
-            let path = parse_path(url_str).unwrap();
+                thread::spawn(move || {
+                    let (headers, body) = handle_connection(&mut stream);
+                    let (request_type, _, headers_map, url) = parse_headers(headers).unwrap();
 
-            match app.match_endpoint(path, request_type) {
-                Ok(endpoint) => {
-                    let request = Request {
-                        headers: headers_map,
-                        body,
-                        url_params,
-                    };
+                    if let Some(url) = url {
+                        let url_str = url.as_str();
+                        let url_params = parse_url_param(url_str);
+                        let path = parse_path(url_str).unwrap();
 
-                    if let Some(response) = (endpoint.mapper)(request) {
-                        write_connection(&mut stream, response);
+                        match app_clone.match_endpoint(path, request_type) {
+                            Ok(endpoint) => {
+                                let request = Request {
+                                    headers: headers_map,
+                                    body,
+                                    url_params,
+                                };
+
+                                if let Some(response) = (endpoint.mapper)(request) {
+                                    write_connection(&mut stream, response);
+                                }
+                            }
+                            Err(err) => {
+                                if verbose {
+                                    eprintln!("Error matching endpoint: {}", err);
+                                }
+                            }
+                        }
                     }
-                }
-                Err(err) => {
-                    if verbose {
-                        eprintln!("Error matching endpoint: {}", err);
-                    }
+                });
+            }
+            Err(e) => {
+                if verbose {
+                    eprintln!("Error accepting connection: {}", e);
                 }
             }
         }
