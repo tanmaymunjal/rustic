@@ -32,5 +32,6 @@ jobs:
     # do not want to treat warning as errors rn, still here for reference
     - name: Run clippy
       run: cargo clippy
-    
 
+    - name: Generate Docs and Save
+      run: ./generate_docs.sh && git add . && git config --local user.email "action@github.com" && git config --local user.name "GitHub Action" && git commit -m "Add generated docs" --no-verify && git push

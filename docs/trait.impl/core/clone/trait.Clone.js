@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"rustic":[["impl&lt;'a&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> for <a class=\"struct\" href=\"rustic/http11_response/struct.Response.html\" title=\"struct rustic::http11_response::Response\">Response</a>&lt;'a&gt;"]]
+"rustic":[["impl&lt;'a&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.79.0/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> for <a class=\"struct\" href=\"rustic/http11_response/struct.Response.html\" title=\"struct rustic::http11_response::Response\">Response</a>&lt;'a&gt;"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
