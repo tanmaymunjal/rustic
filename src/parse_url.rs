@@ -38,7 +38,7 @@ mod test_parse_url_param {
 
     #[test]
     fn test_single_param() {
-        let url = "http://example.com/?key=value";
+        let url = "/?key=value";
         let result1 = parse_url_param(url);
         let mut expected = HashMap::new();
         expected.insert("key".to_string(), "value".to_string());
@@ -47,7 +47,7 @@ mod test_parse_url_param {
 
     #[test]
     fn test_multiple_param() {
-        let url = "http://example.com/?key1=value1&key2=value2&key3=value3";
+        let url = "/?key1=value1&key2=value2&key3=value3";
         let result = parse_url_param(url);
         let mut expected = HashMap::new();
         expected.insert("key1".to_string(), "value1".to_string());
@@ -58,7 +58,7 @@ mod test_parse_url_param {
 
     #[test]
     fn test_no_param() {
-        let url = "http://example.com/";
+        let url = "/";
         let result = parse_url_param(url);
         let expected = HashMap::new();
         assert_eq!(result, expected);

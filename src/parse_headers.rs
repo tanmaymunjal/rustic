@@ -64,7 +64,7 @@ type ParsedHeaders = Result<
 /// assert_eq!(result.0, RequestType::GET);
 /// assert_eq!(result.1, HttpType::OnePointOne);
 /// assert_eq!(result.2.get("Host"), Some(&"localhost:8002".to_string()));
-/// assert_eq!(result.3, Some("localhost:8002/test".to_string()));
+/// assert_eq!(result.3, Some("/test".to_string()));
 /// ```
 pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
     if headers.is_empty() {
@@ -95,7 +95,6 @@ pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
     };
 
     let mut header_map = HashMap::new();
-    let mut host_name = None;
 
     // Parse headers
     for header in headers.iter().skip(1) {
@@ -104,17 +103,11 @@ pub fn parse_headers(headers: Vec<String>) -> ParsedHeaders {
             let key = parts[0].trim();
             let value = parts[1].trim().to_string();
             header_map.insert(key.to_string(), value.clone());
-
-            // Check if the header is "Host" and extract its value
-            if key.to_lowercase().eq_ignore_ascii_case("host") {
-                host_name = Some(value);
-            }
         }
     }
 
     // Construct the URL
-    let url =
-        host_name.and_then(|host| split_request.get(1).map(|path| format!("{}{}", host, path)));
+    let url = split_request.get(1).map(|&path| path.to_string());
 
     Ok((request_type, http_type, header_map, url))
 }
@@ -142,6 +135,6 @@ mod parse_headers_test {
             headers_map.get("User-Agent"),
             Some(&"curl/8.2.1".to_string())
         );
-        assert_eq!(url, Some("localhost:8002/test".to_string()));
+        assert_eq!(url, Some("/test".to_string()));
     }
 }

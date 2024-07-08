@@ -48,7 +48,7 @@ mod test_parse_path {
     #[test]
     fn test_parse_path_simple() {
         assert_eq!(
-            parse_path("https://example.com/path/to/resource/"),
+            parse_path("/path/to/resource/"),
             Some("path/to/resource")
         );
     }
@@ -56,14 +56,14 @@ mod test_parse_path {
     /// Tests the `parse_path` function with a URL that has no path, only the scheme and host.
     #[test]
     fn test_parse_path_no_path() {
-        assert_eq!(parse_path("https://example.com"), None);
+        assert_eq!(parse_path("/"), None);
     }
 
     /// Tests the `parse_path` function with a URL that does not include a scheme.
     #[test]
     fn test_parse_path_no_scheme() {
         assert_eq!(
-            parse_path("example.com/path/to/resource"),
+            parse_path("/path/to/resource"),
             Some("path/to/resource")
         );
     }
