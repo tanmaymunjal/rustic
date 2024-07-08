@@ -1,6 +1,6 @@
-# Rustic: A Lightweight HTTP Micro Framework in Rust
+# Rustic: A Lightweight Multi-threaded HTTP Micro Framework in Rust
 
-Rustic is a minimalist HTTP micro framework built from the ground up in Rust. It implements a http web server from the socket level, providing a simple, Flask-like interface for adding endpoints with minimal boilerplate.
+Rustic is a minimalist HTTP micro framework built from the ground up in Rust. It implements a multi-threaded http web server from the socket level, providing a simple, Flask-like interface for adding endpoints with minimal boilerplate.
 
 ## Features
 
